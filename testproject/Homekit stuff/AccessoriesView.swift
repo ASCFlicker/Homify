@@ -13,7 +13,7 @@ struct AccessoriesView: View {
                     Text("[HK] \(accessory.name)")
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(isAccessoryOn(accessory) ? Color.yellow : Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
@@ -25,7 +25,24 @@ struct AccessoriesView: View {
         .navigationTitle("Accessories")
     }
 
-    // Check if the accessory is supported (lightbulb, switch, outlet, etc.)
+    private func isAccessoryOn(_ accessory: HMAccessory) -> Bool {
+        guard let service = accessory.services.first(where: {
+            $0.serviceType == HMServiceTypeOutlet ||
+            $0.serviceType == HMServiceTypeSwitch ||
+            $0.serviceType == HMServiceTypeLightbulb
+        }) else {
+            return false
+        }
+
+        if let powerState = service.characteristics.first(where: {
+            $0.characteristicType == HMCharacteristicTypePowerState
+        }), let value = powerState.value as? Bool {
+            return value
+        }
+
+        return false
+    }
+
     private func isAccessorySupported(_ accessory: HMAccessory) -> Bool {
         let supportedServiceTypes: [String] = [
             HMServiceTypeLightbulb,
@@ -37,9 +54,7 @@ struct AccessoriesView: View {
         }
     }
 
-    // Toggle power state for supported accessories
     private func toggleAccessoryPower(_ accessory: HMAccessory) {
-        // Find the first supported service (lightbulb, switch, outlet, etc.)
         guard let service = accessory.services.first(where: { service in
             let supportedServiceTypes: [String] = [
                 HMServiceTypeLightbulb,
@@ -51,7 +66,6 @@ struct AccessoriesView: View {
             return
         }
 
-        // Find the power state characteristic
         if let powerState = service.characteristics.first(where: { $0.characteristicType == HMCharacteristicTypePowerState }) {
             powerState.readValue { error in
                 if let error = error {
@@ -59,13 +73,14 @@ struct AccessoriesView: View {
                     return
                 }
 
-                // Toggle the power state
                 if let currentState = powerState.value as? Bool {
                     powerState.writeValue(!currentState) { error in
                         if let error = error {
                             print("Error toggling power state: \(error.localizedDescription)")
                         } else {
                             print("Accessory \(accessory.name) turned \(currentState ? "off" : "on")")
+                            // Notify the homeManager that a change has occurred
+                            self.homeManager.objectWillChange.send()
                         }
                     }
                 }
