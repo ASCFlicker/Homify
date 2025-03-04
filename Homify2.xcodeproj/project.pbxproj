@@ -7,12 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A90603B12D2E35C500ADC569 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A90603B02D2E35C500ADC569 /* GoogleSignIn */; };
-		A90603B32D2E35C500ADC569 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A90603B22D2E35C500ADC569 /* GoogleSignInSwift */; };
+		A9F17EDA2D72B64900719549 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A9F17ED92D72B64900719549 /* GoogleSignIn */; };
+		A9F17EDC2D72B64900719549 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A9F17EDB2D72B64900719549 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A91818562CD18F3C009F91E4 /* Homify2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Homify2.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9F17ED72D72B57000719549 /* Homify2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Homify2-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -28,8 +29,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A90603B32D2E35C500ADC569 /* GoogleSignInSwift in Frameworks */,
-				A90603B12D2E35C500ADC569 /* GoogleSignIn in Frameworks */,
+				A9F17EDA2D72B64900719549 /* GoogleSignIn in Frameworks */,
+				A9F17EDC2D72B64900719549 /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -39,6 +40,7 @@
 		A91818352CD18EBE009F91E4 = {
 			isa = PBXGroup;
 			children = (
+				A9F17ED72D72B57000719549 /* Homify2-Info.plist */,
 				A91818402CD18EBF009F91E4 /* testproject */,
 				A91818562CD18F3C009F91E4 /* Homify2.app */,
 			);
@@ -92,7 +94,7 @@
 			mainGroup = A91818352CD18EBE009F91E4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A9A15E842D090417002B328D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				A9F17ED82D72B64900719549 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A91818352CD18EBE009F91E4;
@@ -256,6 +258,7 @@
 				DEVELOPMENT_TEAM = MMGNY4PX8S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Homify2-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Homify;
 				INFOPLIST_KEY_NSHomeKitUsageDescription = "Using HomeKit integration to control smart home devices";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -289,6 +292,7 @@
 				DEVELOPMENT_TEAM = MMGNY4PX8S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Homify2-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Homify;
 				INFOPLIST_KEY_NSHomeKitUsageDescription = "Using HomeKit integration to control smart home devices";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -334,7 +338,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A9A15E842D090417002B328D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+		A9F17ED82D72B64900719549 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
 			requirement = {
@@ -345,14 +349,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A90603B02D2E35C500ADC569 /* GoogleSignIn */ = {
+		A9F17ED92D72B64900719549 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A9A15E842D090417002B328D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			package = A9F17ED82D72B64900719549 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
 		};
-		A90603B22D2E35C500ADC569 /* GoogleSignInSwift */ = {
+		A9F17EDB2D72B64900719549 /* GoogleSignInSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A9A15E842D090417002B328D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			package = A9F17ED82D72B64900719549 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */

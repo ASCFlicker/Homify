@@ -43,19 +43,6 @@ class HomeKitManager: NSObject, ObservableObject, HMHomeManagerDelegate {
             }
         }
     }
-    func toggleLightAccessory(_ accessory: HMAccessory, turnOn: Bool) {
-        for service in accessory.services where service.serviceType == HMServiceTypeLightbulb {
-            // Find the characteristic for power state
-            if let powerState = service.characteristics.first(where: { $0.characteristicType == HMCharacteristicTypePowerState }) {
-                powerState.writeValue(turnOn) { error in
-                    if let error = error {
-                        print("Error updating light state: \(error.localizedDescription)")
-                    } else {
-                        print("Light turned \(turnOn ? "on" : "off") successfully.")
-                    }
-                }
-            }
-        }
-    }
+
     // Additional methods to control devices can go here
 }

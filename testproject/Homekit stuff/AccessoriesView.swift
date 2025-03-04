@@ -17,6 +17,7 @@ struct AccessoriesView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+                .animation(.easeInOut(duration: 0.3), value: isAccessoryOn(accessory))
             } else {
                 Text("Unsupported accessory: \(accessory.name)")
                     .foregroundColor(.gray)
