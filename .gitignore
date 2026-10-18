@@ -1,0 +1,17 @@
+# Xcode user/workspace state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Build products
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Large SDK frameworks (vendored separately, not checked in)
+Framework/
+
+# macOS
+.DS_Store
