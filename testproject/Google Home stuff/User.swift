@@ -1,5 +1,5 @@
 //
-//  GIDSingin.swift
+//  User.swift
 //  Homify2
 //
 //  Created by Jun Huang on 2/28/25.
