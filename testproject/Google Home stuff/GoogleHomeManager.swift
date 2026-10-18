@@ -47,6 +47,8 @@ final class GoogleHomeManager: ObservableObject {
     private var deviceListTask: Task<Void, Never>?
     private var structureListTask: Task<Void, Never>?
     private var deviceTypeTasks: [String: Task<Void, Never>] = [:]
+    // Bumped by disconnect() so a Home.connect() that finishes after sign-out is discarded.
+    private var connectionGeneration = 0
 
     // DeviceTypeCollection can't be enumerated, so probe the types that carry an OnOff trait.
     private static let lightTypes: [any DeviceType.Type] = [
@@ -82,21 +84,28 @@ final class GoogleHomeManager: ObservableObject {
         guard home == nil, !isConnecting else { return }
         isConnecting = true
         defer { isConnecting = false }
+        let generation = connectionGeneration
 
         do {
             try Self.configureIfNeeded()
             let home = try await Home.connect()
+            guard generation == connectionGeneration else {
+                await home.disconnect()
+                return
+            }
             self.home = home
             isConnected = true
             errorMessage = nil
             observeStructures(in: home)
             observeDevices(in: home)
         } catch {
+            guard generation == connectionGeneration else { return }
             errorMessage = "Couldn't connect to Google Home: \(error.localizedDescription)"
         }
     }
 
     func disconnect() async {
+        connectionGeneration += 1
         deviceListTask?.cancel()
         deviceListTask = nil
         structureListTask?.cancel()
@@ -110,8 +119,10 @@ final class GoogleHomeManager: ObservableObject {
         hasLoadedHomes = false
         hasLoadedDevices = false
         isConnected = false
+        errorMessage = nil
+        let home = self.home
+        self.home = nil
         await home?.disconnect()
-        home = nil
     }
 
     func toggle(_ device: GoogleHomeDevice) async {
