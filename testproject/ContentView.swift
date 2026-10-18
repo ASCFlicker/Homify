@@ -1,61 +1,103 @@
 //
-//  ContentView.swift
-//  testproject
+//  ContentView.swift
+//  testproject
 //
-//  Created by Jun Huang on 10/29/24.
+//  Created by Jun Huang on 10/29/24.
 //
 
 import SwiftUI
-import HomeKit
-import Foundation
 import GoogleSignIn
 
 struct ContentView: View {
     @Binding var user: User?
     @StateObject private var homeManager = HomeKitManager()
-    @State private var isShowingAccessoriesView = false // State to control AccessoriesView visibility
+    @StateObject private var googleHomeManager = GoogleHomeManager()
+    @StateObject private var layout = DeviceLayoutStore()
+    @State private var isCustomizing = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        if let user {
-            Text("Hi there, \(user.name)")
-            Button {
-                GIDSignIn.sharedInstance.signOut()
-                self.user = nil
-            } label: {
-                Text("Log out")
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 32) {
+                    Text(greeting)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    HomeKitSection(homeManager: homeManager, layout: layout) {
+                        isCustomizing = true
+                    }
+
+                    GoogleHomeSection(
+                        manager: googleHomeManager,
+                        layout: layout,
+                        isSignedIn: user != nil,
+                        signIn: handleSignUpButton
+                    ) {
+                        isCustomizing = true
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
             }
-        } else {
-            VStack { // Removed NavigationStack
-                VStack(spacing: 20) {
-                    Button(action: {
-                        homeManager.homeManager?.delegate = homeManager
-                        isShowingAccessoriesView = true // Show AccessoriesView when button is tapped
-                    }) {
-                        Text(homeManager.isAuthorized ? "See HomeKit accessories" : "Connect to HomeKit") // Conditional button text
+            .background { HomifyBackground() }
+            .navigationTitle("Homify")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Customize", systemImage: "slider.horizontal.3") {
+                        isCustomizing = true
                     }
-                    .padding()
-
-                    Button {
-                        handleSignUpButton()
-                    } label: {
-                        Text("Connect to Google Home")
-                    }
-
                 }
-
-                if isShowingAccessoriesView { // Conditionally show AccessoriesView
-                    AccessoriesView(homeManager: homeManager)
-                        .transition(.move(edge: .bottom)) // Optional: Add a transition for visual effect
-                        .zIndex(1) // Ensure it's on top if needed
+                ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                ToolbarItem(placement: .topBarTrailing) {
+                    accountMenu
                 }
-
-
-            } // Removed NavigationStack
+            }
+            .sheet(isPresented: $isCustomizing) {
+                CustomizeLayoutView(
+                    layout: layout,
+                    appleHomeItems: homeManager.layoutItems,
+                    googleHomeItems: googleHomeManager.layoutItems
+                )
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active {
+                    homeManager.refreshPowerStates()
+                }
+            }
         }
     }
 
+    private var greeting: String {
+        guard let name = user?.name, !name.isEmpty else { return "All your devices, in one place." }
+        return "Welcome back, \(name)."
+    }
+
+    private var accountMenu: some View {
+        Menu {
+            if let user {
+                Section(user.name) {
+                    Button("Sign Out", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive) {
+                        signOut()
+                    }
+                }
+            } else {
+                Button("Sign In with Google", systemImage: "person.crop.circle.badge.plus") {
+                    handleSignUpButton()
+                }
+            }
+        } label: {
+            Label("Account", systemImage: user == nil ? "person.crop.circle" : "person.crop.circle.fill")
+        }
+    }
+
+    private func signOut() {
+        Task { await googleHomeManager.disconnect() }
+        GIDSignIn.sharedInstance.signOut()
+        user = nil
+    }
+
     func handleSignUpButton() {
-        print ("Sign in with Google Clicked")
         if let rootViewController = getRootViewController() {
             GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { result, error in
                 guard let result else {
@@ -63,11 +105,9 @@ struct ContentView: View {
                     return
                 }
                 self.user = User.init(name: result.user.profile?.name ?? "")
-                //do something with result
             }
         }
     }
-
 
     func getRootViewController() -> UIViewController? {
         guard let scene = UIApplication.shared.connectedScenes.first as?
