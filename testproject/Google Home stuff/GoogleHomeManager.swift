@@ -39,12 +39,29 @@ final class GoogleHomeManager: ObservableObject {
         DimmablePlugInUnitDeviceType.self,
     ]
 
+    private static let appleTeamID = "MMGNY4PX8S"
+    private static var isConfigured = false
+
+    // Reuses the iOS OAuth client from Info.plist; that Cloud project must have the Home API enabled.
+    private static func configureIfNeeded() throws {
+        guard !isConfigured else { return }
+        guard let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String else {
+            throw HomeError.failedPrecondition("GIDClientID is missing from Info.plist")
+        }
+        Home.configure {
+            $0.teamID = appleTeamID
+            $0.clientID = clientID
+        }
+        isConfigured = true
+    }
+
     func connect() async {
         guard home == nil, !isConnecting else { return }
         isConnecting = true
         defer { isConnecting = false }
 
         do {
+            try Self.configureIfNeeded()
             let home = try await Home.connect()
             self.home = home
             isConnected = true
