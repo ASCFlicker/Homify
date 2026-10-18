@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import GoogleSignIn
 
 @main
 struct testprojectApp: App {
@@ -13,6 +14,16 @@ struct testprojectApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(user: self.$user)
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                }
+                .onAppear {
+                    GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
+                        if let user {
+                            self.user = User(name: user.profile?.name ?? "")
+                        }
+                    }
+                }
         }
     }
 }
