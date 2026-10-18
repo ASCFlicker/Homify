@@ -10,8 +10,21 @@ import GoogleHomeTypes
 private typealias OnOffTrait = GoogleHomeTypes.Matter.OnOffTrait
 
 struct GoogleHomeDevice: Identifiable {
+    enum Kind {
+        case light, plug, other
+
+        var systemImage: String {
+            switch self {
+            case .light: "lightbulb"
+            case .plug: "powerplug"
+            case .other: "square.dashed"
+            }
+        }
+    }
+
     let id: String
     let name: String
+    var kind: Kind
     var supportsOnOff: Bool
     var isOn: Bool
 }
@@ -19,27 +32,36 @@ struct GoogleHomeDevice: Identifiable {
 @MainActor
 final class GoogleHomeManager: ObservableObject {
     @Published private(set) var devices: [GoogleHomeDevice] = []
+    @Published private(set) var homeNames: [String] = []
+    @Published private(set) var hasLoadedHomes = false
+    @Published private(set) var hasLoadedDevices = false
     @Published private(set) var isConnected = false
     @Published private(set) var isConnecting = false
     @Published var errorMessage: String?
 
+    private typealias OnOffControl = (trait: OnOffTrait, kind: GoogleHomeDevice.Kind)
+
     private var home: Home?
     private var homeDevices: Set<HomeDevice> = []
-    private var onOffTraits: [String: OnOffTrait] = [:]
+    private var controls: [String: OnOffControl] = [:]
     private var deviceListTask: Task<Void, Never>?
+    private var structureListTask: Task<Void, Never>?
     private var deviceTypeTasks: [String: Task<Void, Never>] = [:]
 
     // DeviceTypeCollection can't be enumerated, so probe the types that carry an OnOff trait.
-    private static let onOffDeviceTypes: [any DeviceType.Type] = [
+    private static let lightTypes: [any DeviceType.Type] = [
         OnOffLightDeviceType.self,
         DimmableLightDeviceType.self,
         ColorTemperatureLightDeviceType.self,
         ExtendedColorLightDeviceType.self,
+    ]
+    private static let plugTypes: [any DeviceType.Type] = [
         OnOffPluginUnitDeviceType.self,
         DimmablePlugInUnitDeviceType.self,
     ]
 
     private static let appleTeamID = "MMGNY4PX8S"
+    private static let appGroup = "group.CSProj.Homify2"
     private static var isConfigured = false
 
     // Reuses the iOS OAuth client from Info.plist; that Cloud project must have the Home API enabled.
@@ -51,6 +73,7 @@ final class GoogleHomeManager: ObservableObject {
         Home.configure {
             $0.teamID = appleTeamID
             $0.clientID = clientID
+            $0.sharedAppGroup = appGroup
         }
         isConfigured = true
     }
@@ -66,6 +89,7 @@ final class GoogleHomeManager: ObservableObject {
             self.home = home
             isConnected = true
             errorMessage = nil
+            observeStructures(in: home)
             observeDevices(in: home)
         } catch {
             errorMessage = "Couldn't connect to Google Home: \(error.localizedDescription)"
@@ -75,18 +99,23 @@ final class GoogleHomeManager: ObservableObject {
     func disconnect() async {
         deviceListTask?.cancel()
         deviceListTask = nil
+        structureListTask?.cancel()
+        structureListTask = nil
         deviceTypeTasks.values.forEach { $0.cancel() }
         deviceTypeTasks.removeAll()
-        onOffTraits.removeAll()
+        controls.removeAll()
         homeDevices.removeAll()
         devices = []
+        homeNames = []
+        hasLoadedHomes = false
+        hasLoadedDevices = false
         isConnected = false
         await home?.disconnect()
         home = nil
     }
 
     func toggle(_ device: GoogleHomeDevice) async {
-        guard let trait = onOffTraits[device.id] else { return }
+        guard let trait = controls[device.id]?.trait else { return }
         do {
             try await trait.toggle()
         } catch {
@@ -94,10 +123,33 @@ final class GoogleHomeManager: ObservableObject {
         }
     }
 
+    func manageAccess() {
+        home?.presentPermissionsUpdate()
+    }
+
+    func reload() async {
+        await disconnect()
+        await connect()
+    }
+
+    private func observeStructures(in home: Home) {
+        structureListTask = Task { [weak self] in
+            do {
+                for try await structures in home.structures().batched().values {
+                    self?.homeNames = structures.map(\.name).sorted()
+                    self?.hasLoadedHomes = true
+                }
+            } catch {
+                self?.errorMessage = "Lost Google Home updates: \(error.localizedDescription)"
+            }
+        }
+    }
+
     private func observeDevices(in home: Home) {
         deviceListTask = Task { [weak self] in
             do {
                 for try await devices in home.devices().batched().values {
+                    self?.hasLoadedDevices = true
                     self?.handleDeviceList(devices)
                 }
             } catch {
@@ -110,7 +162,7 @@ final class GoogleHomeManager: ObservableObject {
         let currentIDs = Set(newDevices.map(\.id))
         for id in deviceTypeTasks.keys where !currentIDs.contains(id) {
             deviceTypeTasks.removeValue(forKey: id)?.cancel()
-            onOffTraits.removeValue(forKey: id)
+            controls.removeValue(forKey: id)
         }
 
         homeDevices = newDevices
@@ -125,7 +177,7 @@ final class GoogleHomeManager: ObservableObject {
         deviceTypeTasks[id] = Task { [weak self] in
             do {
                 for try await types in device.types.subscribeAll().values {
-                    self?.onOffTraits[id] = Self.onOffTrait(in: types)
+                    self?.controls[id] = Self.onOffControl(in: types)
                     self?.rebuildDevices()
                 }
             } catch {
@@ -137,22 +189,24 @@ final class GoogleHomeManager: ObservableObject {
     private func rebuildDevices() {
         devices = homeDevices
             .map { device in
-                let trait = onOffTraits[device.id]
+                let control = controls[device.id]
                 return GoogleHomeDevice(
                     id: device.id,
                     name: device.name,
-                    supportsOnOff: trait != nil,
-                    isOn: trait?.attributes.onOff ?? false
+                    kind: control?.kind ?? .other,
+                    supportsOnOff: control != nil,
+                    isOn: control?.trait.attributes.onOff ?? false
                 )
             }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
-    private static func onOffTrait(in types: DeviceTypeCollection) -> OnOffTrait? {
-        for type in onOffDeviceTypes {
-            if let trait = onOffTrait(of: type, in: types) {
-                return trait
-            }
+    private static func onOffControl(in types: DeviceTypeCollection) -> OnOffControl? {
+        for type in lightTypes {
+            if let trait = onOffTrait(of: type, in: types) { return (trait, .light) }
+        }
+        for type in plugTypes {
+            if let trait = onOffTrait(of: type, in: types) { return (trait, .plug) }
         }
         return nil
     }
