@@ -13,16 +13,21 @@ import GoogleSignIn
 struct ContentView: View {
     @Binding var user: User?
     @StateObject private var homeManager = HomeKitManager()
+    @StateObject private var googleHomeManager = GoogleHomeManager()
     @State private var isShowingAccessoriesView = false // State to control AccessoriesView visibility
 
     var body: some View {
         if let user {
-            Text("Hi there, \(user.name)")
-            Button {
-                GIDSignIn.sharedInstance.signOut()
-                self.user = nil
-            } label: {
-                Text("Log out")
+            VStack(spacing: 20) {
+                Text("Hi there, \(user.name)")
+                GoogleHomeDevicesView(manager: googleHomeManager)
+                Button {
+                    Task { await googleHomeManager.disconnect() }
+                    GIDSignIn.sharedInstance.signOut()
+                    self.user = nil
+                } label: {
+                    Text("Log out")
+                }
             }
         } else {
             VStack { // Removed NavigationStack

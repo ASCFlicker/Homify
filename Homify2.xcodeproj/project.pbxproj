@@ -7,12 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A9AB10032E00000000000001 /* GoogleHomeSDK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9AB10012E00000000000001 /* GoogleHomeSDK.xcframework */; };
+		A9AB10042E00000000000001 /* GoogleHomeTypes.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9AB10022E00000000000001 /* GoogleHomeTypes.xcframework */; };
+		A9AB10052E00000000000001 /* GoogleHomeSDK.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A9AB10012E00000000000001 /* GoogleHomeSDK.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A9F17EDA2D72B64900719549 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A9F17ED92D72B64900719549 /* GoogleSignIn */; };
 		A9F17EDC2D72B64900719549 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A9F17EDB2D72B64900719549 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		A9AB10062E00000000000001 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A9AB10052E00000000000001 /* GoogleHomeSDK.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A91818562CD18F3C009F91E4 /* Homify2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Homify2.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9AB10012E00000000000001 /* GoogleHomeSDK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = GoogleHomeSDK.xcframework; sourceTree = "<group>"; };
+		A9AB10022E00000000000001 /* GoogleHomeTypes.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = GoogleHomeTypes.xcframework; sourceTree = "<group>"; };
 		A9F17ED72D72B57000719549 /* Homify2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Homify2-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -31,6 +50,8 @@
 			files = (
 				A9F17EDA2D72B64900719549 /* GoogleSignIn in Frameworks */,
 				A9F17EDC2D72B64900719549 /* GoogleSignInSwift in Frameworks */,
+				A9AB10032E00000000000001 /* GoogleHomeSDK.xcframework in Frameworks */,
+				A9AB10042E00000000000001 /* GoogleHomeTypes.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,8 +63,18 @@
 			children = (
 				A9F17ED72D72B57000719549 /* Homify2-Info.plist */,
 				A91818402CD18EBF009F91E4 /* testproject */,
+				A9AB10072E00000000000001 /* Framework */,
 				A91818562CD18F3C009F91E4 /* Homify2.app */,
 			);
+			sourceTree = "<group>";
+		};
+		A9AB10072E00000000000001 /* Framework */ = {
+			isa = PBXGroup;
+			children = (
+				A9AB10012E00000000000001 /* GoogleHomeSDK.xcframework */,
+				A9AB10022E00000000000001 /* GoogleHomeTypes.xcframework */,
+			);
+			path = Framework;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -56,6 +87,7 @@
 				A918183A2CD18EBF009F91E4 /* Sources */,
 				A918183B2CD18EBF009F91E4 /* Frameworks */,
 				A918183C2CD18EBF009F91E4 /* Resources */,
+				A9AB10062E00000000000001 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
